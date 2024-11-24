@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sinf Admin Paneli</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(120deg, #3a1c71, #d76d77, #ffaf7b);
+      color: #fff;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 20px;
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 90%;
+      margin: 20px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    h3 {
+      margin: 20px 0;
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="text"], select, input[type="password"] {
+      width: 70%;
+      padding: 10px;
+      margin: 10px auto;
+      border: 2px solid #ffaf7b;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.2);
+      background: #fff;
+      color: #333;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #ff9966, #ff5e62);
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    button:hover {
+      background: linear-gradient(90deg, #ff5e62, #ff9966);
+      transform: scale(1.05);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      margin: 15px 0;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      font-size: 1.1rem;
+    }
+
+    .vote-count {
+      background: #6a0572;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    Sinf Admin Paneli va Ovoz Berish
+  </header>
+
+  <!-- Admin Panel uchun Kirish Formasi -->
+  <div id="adminLogin" class="container">
+    <h3>Admin Panelga Kirish</h3>
+    <form id="loginForm">
+      <input type="password" id="adminPassword" placeholder="Admin paroli" required>
+      <button type="submit">Kirish</button>
+    </form>
+    <p id="loginError" style="color: red; display: none;">Noto'g'ri parol! Iltimos, qaytadan urinib ko'ring.</p>
+  </div>
+
+  <!-- Admin Paneli va Ovoz Berish bo'limi -->
+  <div id="adminPanel" class="container" style="display: none;">
+    <h3>Sinfdoshlar Ro'yxatini Qo'shish</h3>
+    <ul id="studentList">
+      <!-- Dinamik sinfdoshlar ro'yxati -->
+    </ul>
+    <form id="addStudentForm">
+      <input type="text" id="newStudent" placeholder="Yangi sinfdosh ismi" required>
+      <button type="submit">Qo'shish</button>
+    </form>
+
+    <h3>Ovoz Berish</h3>
+    <form id="voteForm">
+      <label for="categorySelect">Kategoriya:</label>
+      <select id="categorySelect">
+        <option value="eng_alochi">Eng alochi o'quvchi</option>
+        <option value="eng_yaxshi">Eng yaxshi o'quvchi</option>
+      </select>
+      <br><br>
+      <select id="voteSelect">
+        <!-- Dinamik sinfdoshlar ro'yxatidan ovoz berish -->
+      </select>
+      <button type="submit">Ovoz Berish</button>
+    </form>
+
+    <h3>Ovoz Natijalari</h3>
+    <ul id="voteResults">
+      <!-- Ovoz natijalari -->
+    </ul>
+  </div>
+
+  <script>
+    // Admin paneli va sinfdoshlarni qo'shish funksiyasi
+    const adminPassword = 'admin123'; // Admin paroli (o'zgartirilishi mumkin)
+    const adminLogin = document.getElementById('adminLogin');
+    const adminPanel = document.getElementById('adminPanel');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+
+    let students = []; // Sinfdoshlarni saqlash
+    let votes = { 'eng_alochi': {}, 'eng_yaxshi': {} }; // Ovozlar
+
+    loginForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const passwordInput = document.getElementById('adminPassword').value;
+
+      if (passwordInput === adminPassword) {
+        adminLogin.style.display = 'none';
+        adminPanel.style.display = 'block';
+      } else {
+        loginError.style.display = 'block';
+      }
+    });
+
+    // Sinfdoshlarni qo'shish va ovoz berish
+    document.getElementById('addStudentForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const studentName = document.getElementById('newStudent').value;
+      if (studentName) {
+        students.push(studentName);
+        updateStudentList();
+        updateVoteOptions();
+        document.getElementById('newStudent').value = '';
+      }
+    });
+
+    // Sinfdoshlarni ro'yxatga qo'shish
+    function updateStudentList() {
+      const studentList = document.getElementById('studentList');
+      studentList.innerHTML = ''; // Ro'yxatni tozalash
+      students.forEach(student => {
+        const studentItem = document.createElement('li');
+        studentItem.textContent = student;
+        studentList.appendChild(studentItem);
+      });
+    }
+
+    // Ovoz berish uchun sinfdoshlarni tanlash
+    function updateVoteOptions() {
+      const voteSelect = document.getElementById('voteSelect');
+      voteSelect.innerHTML = ''; // Tanlovni tozalash
+      students.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student;
+        option.textContent = student;
+        voteSelect.appendChild(option);
+      });
+    }
+
+    // Ovoz berish
+    document.getElementById('voteForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const selectedCategory = document.getElementById('categorySelect').value;
+      const selectedStudent = document.getElementById('voteSelect').value;
+
+      if (selectedStudent && selectedCategory) {
+        // Ovoz berilgan sinfdoshni hisoblash
+        if (!votes[selectedCategory][selectedStudent]) {
+          votes[selectedCategory][selectedStudent] = 0;
+        }
+        votes[selectedCategory][selectedStudent]++;
+
+        // Ovoz natijalarini yangilash
+        updateVoteResults(selectedCategory);
+      }
+    });
+
+    // Ovoz natijalarini ko'rsatish
+    function updateVoteResults(category) {
+      const voteResults = document.getElementById('voteResults');
+      voteResults.innerHTML = ''; // Natijalarni tozalash
+
+      const categoryVotes = votes[category];
+      for (const student in categoryVotes) {
+        const resultItem = document.createElement('li');
+        resultItem.textContent = `${student}: ${categoryVotes[student]} ovoz`;
+        voteResults.appendChild(resultItem);
+      }
+    }
+  </script>
+</body>
+</html>
